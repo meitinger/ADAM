@@ -124,7 +124,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     break;
             }
         }
-        catch (Google.GoogleApiException ex) { Page.Alert(ex.Message); }
+        catch (Google.GoogleApiException ex) { Page.Alert(ex.GetMessage()); }
     }
 
     private string FormatBytes(long bytes, bool binary)

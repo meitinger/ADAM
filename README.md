@@ -21,6 +21,7 @@ Users can register fully managed devices as well as work profiles using Zero Tou
    - Microsoft.CodeDom.Providers.DotNetCompilerPlatform (4.1.0-preview1)
    - Newtonsoft.Json (13.0.1)
 8. Create a `Web.config` based on `Web.sample.config` and adjust the settings in the `appSettings` section to your needs:
+   - `DOMAIN`: The Active Directory domain name.
    - `CREDENTIALS`: Path to the downloaded service account key file.
    - `LANGUAGES`: Space-separated list of locales that user messages should be translated to. Can be empty, in which case only a default message without localization has to be provided.
    - `PROVISIONING_*`: Additional settings to be included in the Zero Touch QR code. For more information see [create a QR code](https://developers.google.com/android/work/play/emm-api/prov-devices#create_a_qr_code).

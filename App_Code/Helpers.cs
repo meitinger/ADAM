@@ -18,6 +18,7 @@
 
 #nullable enable
 
+using Google;
 using Google.Apis.AndroidManagement.v1.Data;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -134,7 +135,7 @@ namespace Aufbauwerk.Tools.Emm
 
     public static class Helpers
     {
-        private static readonly PrincipalContext _context = new(ContextType.Domain);
+        private static readonly PrincipalContext _context = new(ContextType.Domain, GetSetting("DOMAIN"));
 
         public static UserPrincipal CurrentUser => FindUserBySid(HttpContext.Current.Request.LogonUserIdentity.User) ?? throw new UnauthorizedAccessException($"The current user {HttpContext.Current.Request.LogonUserIdentity.Name} has not been found.");
 
@@ -182,6 +183,8 @@ namespace Aufbauwerk.Tools.Emm
         public static string? AsStringNoThrow(this JToken token) => token is JValue value && value.Value is string s ? s : null;
 
         private static SchemaException Expected(this JToken token, JTokenType expected) => new($"{expected} expected but got {token.Type}.");
+
+        public static string GetMessage(this GoogleApiException e) => e.Error?.Message ?? e.Message;
 
         public static T ID<T>(this T control, string id) where T : Control
         {

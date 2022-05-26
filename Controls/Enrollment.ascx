@@ -29,7 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     private void Enroll(object sender, EventArgs e)
     {
         var name = NameTextBox.Text.Trim();
-        if (string.IsNullOrEmpty(name)) { Page.Alert("Please enter the device's name."); }
+        if (string.IsNullOrEmpty(name) && User is null) { Page.Alert("Please enter the device's name."); }
         else
         {
             Google.Apis.AndroidManagement.v1.Data.EnrollmentToken token;
@@ -48,7 +48,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             }
             catch (Google.GoogleApiException ex)
             {
-                Page.Alert(ex.Message);
+                Page.Alert(ex.GetMessage());
                 return;
             }
             var expiration = ((DateTime)token.ExpirationTimestamp).ToLocalTime();
@@ -87,7 +87,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         <ContentTemplate>
             <div class="uk-card uk-card-default">
                 <div class="uk-card-header">
-                    <h3 class="uk-card-title">Enroll Device <%: User is null ? "" : $"for {User.Name}" %></h3>
+                    <h3 class="uk-card-title">Enroll Device <%: User is null ? "" : $"for {User.DisplayName}" %></h3>
                 </div>
                 <asp:Panel runat="server" ID="InputPanel" CssClass="uk-card-body" DefaultButton="EnrollButton">
                     <%
@@ -104,9 +104,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         }
                     %>
                     <div class="uk-margin">
-                        <label for="NameTextBox" class="uk-form-label">Device Name:</label>
+                        <label for="NameTextBox" class="uk-form-label">Device Name<%= User is null ? "" : " (Optional)"%>:</label>
                         <div class="uk-form-controls">
-                            <asp:TextBox runat="server" ID="NameTextBox" CssClass="uk-input" Required="Required" />
+                            <asp:TextBox runat="server" ID="NameTextBox" CssClass="uk-input" />
                         </div>
                     </div>
                     <%

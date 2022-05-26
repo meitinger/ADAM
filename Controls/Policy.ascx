@@ -50,7 +50,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     try { policy = enterprise.PatchPolicy(PolicyName, token.ToPolicy()); }
                     catch (Google.GoogleApiException ex)
                     {
-                        Page.Alert(ex.Message);
+                        Page.Alert(ex.GetMessage());
                         return;
                     }
                     PolicyContainer.Controls.Remove(control);

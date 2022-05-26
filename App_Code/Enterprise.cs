@@ -130,7 +130,7 @@ namespace Aufbauwerk.Tools.Emm
             {
                 AdditionalData = deviceDisplayName,
                 AllowPersonalUsage = workProfile ? "PERSONAL_USAGE_ALLOWED" : "PERSONAL_USAGE_DISALLOWED",
-                Duration = "300s",
+                Duration = "900s",
                 PolicyName = policyName is null ? null : GetFullPolicyName(EnsureValidName(policyName, nameof(policyName))),
                 User = user is null ? null : new() { AccountIdentifier = user.Sid.ToString() }
             }, Name).Execute();
@@ -250,7 +250,7 @@ namespace Aufbauwerk.Tools.Emm
         public Policy PatchUserPolicy(UserPrincipal user)
         {
             try { return PatchPolicy(user.Sid.ToString(), BuildUserPolicyAsToken(user).ToPolicy()); }
-            catch(SchemaException e) { throw new GoogleApiException("Schema", e.Message, e); }
+            catch (SchemaException e) { throw new GoogleApiException("Schema", e.Message, e); }
         }
 
         public Enterprise Policy(string policyName, params string[] appliedTo)
@@ -292,8 +292,10 @@ namespace Aufbauwerk.Tools.Emm
                     var user = Helpers.FindUserBySid(sid);
                     if (user is null)
                     {
-                        DeletePolicy(policyName);
-                        yield return (policyName, SyncResult.Deleted);
+                        var text = policyName;
+                        try { DeletePolicy(policyName); }
+                        catch (GoogleApiException e) { text = $"{text} [Failed: {e.GetMessage()}]"; }
+                        yield return (text, SyncResult.Deleted);
                     }
                     else
                     {
@@ -322,7 +324,8 @@ namespace Aufbauwerk.Tools.Emm
                             else
                             {
                                 // update the policy
-                                PatchPolicy(policyName, newToken.ToPolicy());
+                                try { PatchPolicy(policyName, newToken.ToPolicy()); }
+                                catch (GoogleApiException e) { text = $"{text} [Failed: {e.GetMessage()}]"; }
                                 yield return (text, SyncResult.Updated);
                             }
                         }
