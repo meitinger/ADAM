@@ -1,0 +1,212 @@
+﻿<!--
+Active Directory-integrated Android Management
+Copyright (C) 2022  Manuel Meitinger
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<%@ Master Language="C#" ClassName="Aufbauwerk.Tools.Emm.Master" %>
+
+<%@ Reference Control="~/Controls/Devices.ascx" %>
+<%@ Reference Control="~/Controls/Enrollment.ascx" %>
+<%@ Reference Control="~/Controls/IFrame.ascx" %>
+<%@ Reference Control="~/Controls/Policy.ascx" %>
+<%@ Reference Control="~/Controls/Sync.ascx" %>
+<%@ Reference Control="~/Controls/Welcome.ascx" %>
+
+<script runat="server">
+
+#nullable enable
+
+    private enum Arg
+    {
+        Name = 0x1000 | Tab.Policy,
+        User = 0x1000 | Tab.Enroll,
+        Feature = 0x1000 | Tab.IFrame,
+    }
+
+    private enum Tab
+    {
+        Invalid = 0x01,
+        Personal = 0x100,
+        Administrative = 0x200,
+        MyEnroll = Personal | 0x01,
+        MyDevices = Personal | 0x02,
+        Enroll = Administrative | 0x01,
+        Devices = Administrative | 0x02,
+        IFrame = Administrative | 0x04,
+        Policy = Administrative | 0x08,
+        Sync = Administrative | 0x10,
+    }
+
+    private Tab? _currentTab = null;
+
+    private Tab CurrentTab => _currentTab ?? throw new InvalidOperationException("No tab available.");
+
+    private void EnsureValidArg(Tab tab, Arg arg) { if (((int)arg & (int)tab) != (int)tab) { throw new ArgumentException($"Argument {arg} does not apply to tab {tab}."); } }
+
+    private T GetArg<T>(Arg arg, Func<string?, T> convert)
+    {
+        EnsureValidArg(CurrentTab, arg);
+        var value = Request.QueryString[arg.ToString().ToLowerInvariant()];
+        return convert(string.IsNullOrEmpty(value) ? null : value);
+    }
+
+    private string GetArg(Arg arg) => GetArg(arg, value => value ?? throw new HttpException((int)System.Net.HttpStatusCode.BadRequest, $"Argument '{arg}' is missing."));
+
+    private StringBuilder HrefFromTab(Tab tab) => new StringBuilder("?tab=").Append(tab.ToString().ToLowerInvariant());
+
+    protected override void OnLoad(EventArgs e)
+    {
+        base.OnLoad(e);
+
+        // parse the current tab
+        var tabString = Request.QueryString["tab"];
+        var tab = string.IsNullOrEmpty(tabString) ? 0 : Enum.TryParse<Tab>(tabString, ignoreCase: true, out var tabParsed) ? tabParsed : Tab.Invalid;
+        _currentTab = tab;
+
+        // ensure the logged-on principal has the necessary rights
+        var enterprise = Enterprise.Current;
+        if (!enterprise.IsUser && !enterprise.IsAdmin || (tab & Tab.Personal) != 0 && !enterprise.IsUser || (tab & Tab.Administrative) != 0 && !enterprise.IsAdmin) { throw new HttpException((int)System.Net.HttpStatusCode.Forbidden, $"Principal {Helpers.CurrentUser.Name} has insufficient privileges."); }
+
+        // add the matching tab
+        Content.Controls.Add(tab switch
+        {
+            Tab.MyDevices => new Controls.Devices() { ShowAllDevices = false },
+            Tab.MyEnroll => new Controls.Enrollment() { User = Helpers.CurrentUser, AllowPolicySelection = false },
+            Tab.Devices => new Controls.Devices() { ShowAllDevices = true },
+            Tab.Enroll => new Controls.Enrollment()
+            {
+                User = GetArg(Arg.User, user => user is null ? null : Helpers.FindUserBySid(new(user)) ?? throw new ArgumentException($"User {user} not found.")),
+                AllowPolicySelection = true
+            },
+            Tab.IFrame => new Controls.IFrame() { Feature = GetArg(Arg.Feature) },
+            Tab.Policy => new Controls.Policy() { PolicyName = GetArg(Arg.Name) },
+            Tab.Sync => new Controls.Sync(),
+            0 => new Controls.Welcome() { EnrollHref = enterprise.IsUser ? HrefFromTab(Tab.MyEnroll).ToString() : null },
+            _ => throw new HttpException((int)System.Net.HttpStatusCode.NotFound, $"Tab '{tabString}' not found."),
+        });
+    }
+
+    protected override void OnUnload(EventArgs e)
+    {
+        base.OnUnload(e);
+        _currentTab = null;
+    }
+
+    private void WriteMenuItem(Tab tab, string text, params (Arg, string)[] args)
+    {
+        // build the href for the item while checking for being the active link
+        var isActive = CurrentTab == tab;
+        var href = HrefFromTab(tab);
+        foreach (var (arg, value) in args)
+        {
+            EnsureValidArg(tab, arg);
+            var name = arg.ToString().ToLowerInvariant();
+            if (isActive && Request.QueryString[name] != value) { isActive = false; }
+            href.Append("&").Append(name).Append("=").Append(Uri.EscapeDataString(value));
+        }
+        Response.Write(System.FormattableString.Invariant($"<li class=\"{(isActive ? "uk-active" : "")}\"><a href=\"{HttpUtility.HtmlAttributeEncode(href.ToString())}\">{HttpUtility.HtmlEncode(text)}</a></li>"));
+    }
+
+</script>
+
+<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title><%: Enterprise.Current.DisplayName %></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="<%= HttpUtility.HtmlAttributeEncode(ResolveUrl("~/static/css/uikit.min.css")) %>" />
+    <script src="<%= HttpUtility.HtmlAttributeEncode(ResolveUrl("~/static/js/uikit.min.js")) %>"></script>
+</head>
+<body>
+    <form runat="server">
+        <asp:ScriptManager runat="server" />
+        <div uk-sticky="sel-target: .uk-navbar-container; cls-active: uk-navbar-sticky">
+            <nav class="uk-navbar-container" uk-navbar="" style="background-color: <%= Enterprise.Current.Color %>">
+                <div class="uk-navbar-left">
+                    <div class="uk-navbar-left">
+                        <a class="uk-navbar-item uk-logo" href="<%= HttpUtility.HtmlAttributeEncode(Request.Path) %>"><%: Enterprise.Current.DisplayName %></a>
+                    </div>
+                    <div class="uk-navbar-center">
+                        <%
+                            if (Enterprise.Current.IsUser)
+                            {
+                        %>
+                        <ul class="uk-navbar-nav">
+                            <li class="<%= (CurrentTab & Tab.Personal) != 0 ? "uk-active" : "" %>">
+                                <a href="#"><%: Helpers.CurrentUser.Name %></a>
+                                <div class="uk-navbar-dropdown">
+                                    <ul class="uk-nav uk-navbar-dropdown-nav">
+                                        <% WriteMenuItem(Tab.MyDevices, "List Devices"); %>
+                                        <% WriteMenuItem(Tab.MyEnroll, "Enroll New Device"); %>
+                                    </ul>
+                                </div>
+                            </li>
+                        </ul>
+                        <%
+                            }
+                            if (Enterprise.Current.IsUser && Enterprise.Current.IsAdmin)
+                            {
+                        %>
+                        <span class="uk-navbar-item">|</span>
+                        <%
+                            }
+                            if (Enterprise.Current.IsAdmin)
+                            {
+                        %>
+                        <ul class="uk-navbar-nav">
+                            <li class="<%= CurrentTab == Tab.Policy ? "uk-active" : "" %>">
+                                <a href="#">Policies</a>
+                                <div class="uk-navbar-dropdown">
+                                    <ul class="uk-nav uk-navbar-dropdown-nav">
+                                        <%
+                                            foreach (var policy in Enterprise.Current.Policies)
+                                            {
+                                                WriteMenuItem(Tab.Policy, $"{policy} (v{Enterprise.Current.FindPolicy(policy)?.Version ?? 0})", (Arg.Name, policy));
+                                            }
+                                        %>
+                                    </ul>
+                                </div>
+                            </li>
+                            <% WriteMenuItem(Tab.Devices, "Devices"); %>
+                            <% WriteMenuItem(Tab.Enroll, "Enroll"); %>
+                            <li class="<%= CurrentTab == Tab.IFrame ? "uk-active" : "" %>">
+                                <a href="#">Apps</a>
+                                <div class="uk-navbar-dropdown">
+                                    <ul class="uk-nav uk-navbar-dropdown-nav">
+                                        <% WriteMenuItem(Tab.IFrame, "Find in Play Store", (Arg.Feature, "PLAY_SEARCH")); %>
+                                        <li class="uk-nav-divider"></li>
+                                        <% WriteMenuItem(Tab.IFrame, "Manage Web Apps", (Arg.Feature, "WEB_APPS")); %>
+                                        <% WriteMenuItem(Tab.IFrame, "Manage Private Apps", (Arg.Feature, "PRIVATE_APPS")); %>
+                                        <li class="uk-nav-divider"></li>
+                                        <% WriteMenuItem(Tab.IFrame, "Organize Apps", (Arg.Feature, "STORE_BUILDER")); %>
+                                    </ul>
+                                </div>
+                            </li>
+                            <% WriteMenuItem(Tab.Sync, "Sync"); %>
+                        </ul>
+                        <%
+                            }
+                        %>
+                    </div>
+                </div>
+            </nav>
+        </div>
+        <asp:PlaceHolder runat="server" ID="Content" />
+    </form>
+</body>
+</html>
