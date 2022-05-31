@@ -207,6 +207,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             </nav>
         </div>
         <asp:PlaceHolder runat="server" ID="Content" />
+        <asp:UpdateProgress runat="server" DisplayAfter="500">
+            <ProgressTemplate>
+                <div class="uk-flex-top uk-modal uk-flex uk-open" uk-modal="" tabindex="-1">
+                    <div class="uk-modal-dialog uk-modal-body uk-margin-auto-vertical uk-width-auto uk-border-circle uk-box-shadow-xlarge">
+                        <div uk-spinner="ratio: 2"></div>
+                    </div>
+                </div>
+            </ProgressTemplate>
+        </asp:UpdateProgress>
     </form>
 </body>
 </html>
