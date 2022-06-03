@@ -168,7 +168,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         {
             {Column.Name, enterprise.GetDeviceName(device)},
             {Column.UserName, ResolveName(device.User?.AccountIdentifier) ?? string.Empty},
-            {Column.DisplayName, device.EnrollmentTokenData ?? device.Name},
+            {Column.DisplayName, device.EnrollmentTokenData ?? string.Empty},
             {Column.WorkProfile, device.ManagementMode switch { "DEVICE_OWNER" => "No", "PROFILE_OWNER" => "Yes", _ => string.Empty }},
             {Column.State, Enum.TryParse<DeviceState>(device.State, ignoreCase: true, out var state) ? state : DeviceState.Unknown},
             {Column.AppliedState, Enum.TryParse<DeviceState>(device.AppliedState, ignoreCase: true, out var appliedState) ? appliedState : DeviceState.Unknown},
