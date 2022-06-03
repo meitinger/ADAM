@@ -239,7 +239,7 @@ namespace Aufbauwerk.Tools.Emm
 
         public override int GetHashCode(JToken? token) => token is null ? 0 : GetHashCode(Deserialize(token));
 
-        public override JToken? Merge(JToken? first, JToken? second) => first is null && second is null ? null : Serialize(Merge(first is null ? DefaultValue : Deserialize(first), second is null ? DefaultValue : Deserialize(second)));
+        public override JToken? Merge(JToken? first, JToken? second) => first is null ? second : second is null ? first : Serialize(Merge(Deserialize(first), Deserialize(second)));
 
         public abstract T Merge(T first, T second);
 

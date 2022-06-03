@@ -166,7 +166,7 @@ namespace Aufbauwerk.Tools.Emm
             page: page,
             type: page.GetType(),
             key: "alert",
-            script: Invariant($"alert({HttpUtility.JavaScriptStringEncode(message, addDoubleQuotes: true)})"),
+            script: Invariant($"alert({HttpUtility.JavaScriptStringEncode(message, addDoubleQuotes: true)});"),
             addScriptTags: true
         );
 

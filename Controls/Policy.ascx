@@ -30,7 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         var enterprise = Enterprise.Current;
         var isKnown = enterprise.Policies.Contains(PolicyName);
         var policy = enterprise.FindPolicy(PolicyName) ?? (isKnown ? new() { Version = 0 } : throw new ArgumentException($"Policy '{PolicyName}' does not exist."));
-        if (IsPostBack) { ScriptManager.RegisterStartupScript(Page, Page.GetType(), "dirty", "window.onbeforeunload = e => {e.preventDefault();return e.returnValue = 'You have made changes to the policy. Are you sure you want to leave without saving?';}", addScriptTags: true); }
+        if (IsPostBack) { ScriptManager.RegisterStartupScript(Page, Page.GetType(), "dirty", "window.onbeforeunload = e => {e.preventDefault();return e.returnValue = 'You have made changes to the policy. Are you sure you want to leave without saving?';};", addScriptTags: true); }
         Build();
 
         void Build()
@@ -56,7 +56,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     PolicyContainer.Controls.Remove(control);
                     Build();
                     Page.Alert("The policy has been successfully saved.");
-                    ScriptManager.RegisterStartupScript(Page, Page.GetType(), "clean", "window.onbeforeunload = undefined", addScriptTags: true);
+                    ScriptManager.RegisterStartupScript(Page, Page.GetType(), "clean", "window.onbeforeunload = undefined;", addScriptTags: true);
                 }
             };
             PolicyContainer.Controls.Add(control);
