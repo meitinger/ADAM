@@ -81,6 +81,7 @@ namespace Aufbauwerk.Tools.Emm
         private readonly Dictionary<string, HashSet<Principal>> _policyPrincipals = new();
         private string _provisioningPrefix = "PROVISIONING_";
         private AndroidManagementService? _service = null;
+        private bool _useApprove = false;
         private readonly HashSet<Principal> _users = new(PrincipalEqualityComparer.Instance);
 
         private Enterprise(string name)
@@ -198,7 +199,7 @@ namespace Aufbauwerk.Tools.Emm
                 ParentFrameUrl = url,
                 EnabledFeatures = new[] { feature }
             }, Name).Execute().Value;
-            return Invariant($"https://play.google.com/work/embedded/search?token={token}&iframehomepage={Uri.EscapeDataString(feature)}&mode=SELECT");
+            return Invariant($"https://play.google.com/work/embedded/search?token={token}&iframehomepage={Uri.EscapeDataString(feature)}&mode={(_useApprove ? "APPROVE" : "SELECT")}");
         }));
 
         public string GetPolicyName(Policy policy) => EnsureValidName(policy.Name, "Policy", GetFullPolicyName);
@@ -290,9 +291,9 @@ namespace Aufbauwerk.Tools.Emm
                 {
                     // if the user has been deleted, delete the policy
                     var user = Helpers.FindUserBySid(sid);
-                    if (user is null)
+                    var text = $"{policyName} ({user?.Name ?? "?"})";
+                    if (user is null || !IsContainedIn(user, _users))
                     {
-                        var text = policyName;
                         try { DeletePolicy(policyName); }
                         catch (GoogleApiException e) { text = $"{text} [Failed: {e.GetMessage()}]"; }
                         yield return (text, SyncResult.Deleted);
@@ -300,7 +301,6 @@ namespace Aufbauwerk.Tools.Emm
                     else
                     {
                         // try to build the updated user policy (might fail if policies are invalid)
-                        var text = $"{policyName} ({user.Name})";
                         var oldToken = policy.ToToken();
                         JToken? newToken;
                         try { newToken = BuildUserPolicyAsToken(user); }
@@ -344,6 +344,12 @@ namespace Aufbauwerk.Tools.Emm
         {
             EnsureNotInitialized();
             _users.UnionWith(users.Select(EnsurePrincipal));
+            return this;
+        }
+
+        public Enterprise UseApprove()
+        {
+            _useApprove = true;
             return this;
         }
 

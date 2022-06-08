@@ -87,7 +87,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         <ContentTemplate>
             <div class="uk-card uk-card-default">
                 <div class="uk-card-header">
-                    <h3 class="uk-card-title">Enroll Device <%: User is null ? "" : $"for {User.DisplayName}" %></h3>
+                    <h3 class="uk-card-title">Enroll Device <%: User is null ? "" : $"for {User.GetDisplayName()}" %></h3>
                 </div>
                 <asp:Panel runat="server" ID="InputPanel" CssClass="uk-card-body" DefaultButton="EnrollButton">
                     <%

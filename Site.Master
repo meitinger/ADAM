@@ -148,7 +148,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         %>
                         <ul class="uk-navbar-nav">
                             <li class="<%= (CurrentTab & Tab.Personal) != 0 ? "uk-active" : "" %>">
-                                <a href="#"><%: Helpers.CurrentUser.DisplayName %></a>
+                                <a href="#"><%: Helpers.CurrentUser.GetDisplayName() %></a>
                                 <div class="uk-navbar-dropdown">
                                     <ul class="uk-nav uk-navbar-dropdown-nav">
                                         <% WriteMenuItem(Tab.MyDevices, "List Devices"); %>

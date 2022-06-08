@@ -184,6 +184,8 @@ namespace Aufbauwerk.Tools.Emm
 
         private static SchemaException Expected(this JToken token, JTokenType expected) => new($"{expected} expected but got {token.Type}.");
 
+        public static string GetDisplayName(this Principal principal) => string.IsNullOrEmpty(principal.DisplayName) ? principal.Name : principal.DisplayName;
+
         public static string GetMessage(this GoogleApiException e) => e.Error?.Message ?? e.Message;
 
         public static T ID<T>(this T control, string id) where T : Control
