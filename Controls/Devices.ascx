@@ -177,7 +177,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             {Column.Policy, $"{device.AppliedPolicyName ?? Enterprise.DefaultPolicyName} (v{device.AppliedPolicyVersion ?? 0})"},
             {Column.Model, device.HardwareInfo.Model ?? "Unknown"},
             {Column.Ram, device.MemoryInfo.TotalRam ?? 0},
-            {Column.InternalStorage, (device.MemoryInfo.TotalInternalStorage ?? 0) * 10},
+            {Column.InternalStorage, device.MemoryInfo.TotalInternalStorage ?? 0},
         }).ToArray();
         DeviceRepeater.DataBind();
 
