@@ -252,7 +252,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     </table>
                 </div>
             </div>
-            <asp:Timer runat="server" ID="RefreshTimer" Interval="10000" OnTick="RefreshCachedDevices" />
+            <asp:Timer runat="server" ID="RefreshTimer" Interval="60000" OnTick="RefreshCachedDevices" />
         </ContentTemplate>
         <Triggers>
             <asp:AsyncPostBackTrigger ControlID="RefreshTimer" EventName="Tick" />
