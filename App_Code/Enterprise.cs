@@ -202,7 +202,9 @@ namespace Aufbauwerk.Tools.Emm
             return Invariant($"https://play.google.com/work/embedded/search?token={token}&iframehomepage={Uri.EscapeDataString(feature)}&mode={(_useApprove ? "APPROVE" : "SELECT")}");
         }));
 
-        public string GetPolicyName(Policy policy) => EnsureValidName(policy.Name, "Policy", GetFullPolicyName);
+        public string GetPolicyName(Policy policy) => GetPolicyName(policy.Name);
+
+        private string GetPolicyName(string policyName) => EnsureValidName(policyName, "Policy", GetFullPolicyName);
 
         private bool IsContainedIn(UserPrincipal user, HashSet<Principal> list) => list.Contains(user) || list.OfType<GroupPrincipal>().Any(user.IsMemberOf);
 
@@ -335,6 +337,12 @@ namespace Aufbauwerk.Tools.Emm
                     }
                 }
             }
+        }
+
+        public SecurityIdentifier? TryGetUserSidFromDevice(Device device)
+        {
+            try { return new(GetPolicyName(device.PolicyName)); }
+            catch (ArgumentException) { return null; }
         }
 
         private Policy UpdatePolicyCache(Policy policy)
