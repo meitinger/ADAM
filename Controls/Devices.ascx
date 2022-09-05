@@ -159,15 +159,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         // query and sort all devices
         var enterprise = Enterprise.Current;
         var rawDevices = enterprise.ListDevices();
-        if (!ShowAllDevices)
-        {
-            var currentUserSid = Helpers.CurrentUser.Sid.ToString();
-            rawDevices = rawDevices.Where(device => device.User?.AccountIdentifier == currentUserSid);
-        }
+        if (!ShowAllDevices) { rawDevices = rawDevices.Where(device => GetSidFromPolicyName(device.AppliedPolicyName) == Helpers.CurrentUser.Sid); }
         CachedDevices = rawDevices.Select(device => new Dictionary<Column, object>()
         {
             {Column.Name, enterprise.GetDeviceName(device)},
-            {Column.UserName, ResolveName(device.User?.AccountIdentifier) ?? string.Empty},
+            {Column.UserName, GetUserNameFromPolicyName(device.AppliedPolicyName) ?? string.Empty},
             {Column.DisplayName, device.EnrollmentTokenData ?? string.Empty},
             {Column.WorkProfile, device.ManagementMode switch { "DEVICE_OWNER" => "No", "PROFILE_OWNER" => "Yes", _ => string.Empty }},
             {Column.State, Enum.TryParse<DeviceState>(device.State, ignoreCase: true, out var state) ? state : DeviceState.Unknown},
@@ -181,14 +177,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         }).ToArray();
         DeviceRepeater.DataBind();
 
-        string? ResolveName(string? name)
+        static System.Security.Principal.SecurityIdentifier? GetSidFromPolicyName(string? policyName)
         {
-            // try to convert a SID name into a user name
-            if (name is null) { return null; }
-            System.Security.Principal.SecurityIdentifier sid;
-            try { sid = new(name); }
-            catch (ArgumentException) { return name; }
-            return Helpers.FindUserBySid(sid)?.Name ?? name;
+            if (policyName is null) { return null; }
+            try { return new(policyName.Substring(policyName.LastIndexOf('/') + 1)); }
+            catch (ArgumentException) { return null; }
+        }
+
+        static string? GetUserNameFromPolicyName(string? policyName)
+        {
+            // try to convert a policy name into a user name
+            var sid = GetSidFromPolicyName(policyName);
+            return sid is null ? null : (Helpers.FindUserBySid(sid)?.Name ?? sid.ToString());
         }
     }
 

@@ -39,7 +39,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 token = enterprise.CreateEnrollmentToken
                 (
                     deviceDisplayName: name,
-                    user: User,
                     workProfile: WorkProfileCheckBox.Checked,
                     policyName: User is not null && string.IsNullOrEmpty(PolicyDropDownList.SelectedValue)
                         ? enterprise.GetPolicyName(enterprise.PatchUserPolicy(User))

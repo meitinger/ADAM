@@ -31,6 +31,7 @@ using System.DirectoryServices.AccountManagement;
 using System.Linq;
 using System.Net;
 using System.Security.Principal;
+using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.UI;
 using static System.FormattableString;
@@ -125,15 +126,14 @@ namespace Aufbauwerk.Tools.Emm
             return cache.Value;
         }
 
-        public EnrollmentToken CreateEnrollmentToken(string deviceDisplayName, UserPrincipal? user = null, string? policyName = null, bool workProfile = false) => UsingService(service =>
+        public EnrollmentToken CreateEnrollmentToken(string deviceDisplayName, string? policyName = null, bool workProfile = false) => UsingService(service =>
         {
             var token = service.Enterprises.EnrollmentTokens.Create(new()
             {
                 AdditionalData = deviceDisplayName,
                 AllowPersonalUsage = workProfile ? "PERSONAL_USAGE_ALLOWED" : "PERSONAL_USAGE_DISALLOWED",
                 Duration = "900s",
-                PolicyName = policyName is null ? null : GetFullPolicyName(EnsureValidName(policyName, nameof(policyName))),
-                User = user is null ? null : new() { AccountIdentifier = user.Sid.ToString() }
+                PolicyName = policyName is null ? null : GetFullPolicyName(EnsureValidName(policyName, nameof(policyName)))
             }, Name).Execute();
             var qrCode = JObject.Parse(token.QrCode);
             qrCode["android.app.extra.PROVISIONING_LOCAL_TIME"] = (DateTime.Now.Ticks - TimeOrigin) / TimeSpan.TicksPerMillisecond;
@@ -226,6 +226,7 @@ namespace Aufbauwerk.Tools.Emm
         public IEnumerable<Device> ListDevices() => List((service, nextPageToken) =>
         {
             var request = service.Enterprises.Devices.List(Name);
+            request.PageSize = 100;
             request.PageToken = nextPageToken;
             var response = request.Execute();
             return (response.Devices, response.NextPageToken);
@@ -234,6 +235,7 @@ namespace Aufbauwerk.Tools.Emm
         public IEnumerable<Policy> ListPolicies() => List((service, nextPageToken) =>
         {
             var request = service.Enterprises.Policies.List(Name);
+            request.PageSize = 100;
             request.PageToken = nextPageToken;
             var response = request.Execute();
             return (response.Policies, response.NextPageToken);
@@ -257,6 +259,7 @@ namespace Aufbauwerk.Tools.Emm
         public Enterprise Policy(string policyName, params string[] appliedTo)
         {
             EnsureNotInitialized();
+            if (Regex.IsMatch(policyName, @"^[sS](-\d+)+$", RegexOptions.CultureInvariant)) { throw new ArgumentException("Policy names must not be SID-like."); }
 
             // resolve the groups and add the policy name
             var principals = appliedTo.Select(EnsurePrincipal).ToHashSet(PrincipalEqualityComparer.Instance);
