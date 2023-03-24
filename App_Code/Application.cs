@@ -24,6 +24,7 @@ using System;
 using System.Collections;
 using System.Linq;
 using System.Web.UI;
+using static System.FormattableString;
 
 namespace Aufbauwerk.Tools.Emm
 {
@@ -55,8 +56,8 @@ namespace Aufbauwerk.Tools.Emm
         protected override Schema<JObject> GetSchema(string packageName)
         {
             if (packageName.Contains("/")) { throw new SchemaException($"Invalid package name: {packageName}"); }
-            var app = Enterprise.FindApplication(packageName) ?? throw new SchemaException($"Application package '{packageName}' not found.");
-            return new SchemaObject(FromApplication(app), app.Title ?? packageName, app.Description ?? app.Title ?? packageName, defaultValue: new(new JProperty(KeyProperty, packageName)));
+            var app = Enterprise.FindApplication(packageName) ?? new Application() { Title = packageName, Description = "Application not found." };
+            return new SchemaObject(FromApplication(app), app.Title is null ? packageName : Invariant($"{packageName} [{app.Title}]"), app.Description ?? string.Empty, defaultValue: new(new JProperty(KeyProperty, packageName)));
         }
     }
 

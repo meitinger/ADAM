@@ -206,7 +206,7 @@ namespace Aufbauwerk.Tools.Emm
 
         private string GetPolicyName(string policyName) => EnsureValidName(policyName, "Policy", GetFullPolicyName);
 
-        private bool IsContainedIn(UserPrincipal user, HashSet<Principal> list) => list.Contains(user) || list.OfType<GroupPrincipal>().Any(user.IsMemberOf);
+        private bool IsContainedIn(UserPrincipal user, HashSet<Principal> list) => list.Contains(user) || user.GetAuthorizationGroups().Any(authGroup => list.Contains(authGroup));
 
         public Operation IssueCommand(string deviceName, Command command) => UsingService(service => service.Enterprises.Devices.IssueCommand(command, GetFullDeviceName(EnsureValidName(deviceName, nameof(deviceName)))).Execute());
 
