@@ -56,7 +56,14 @@ namespace Aufbauwerk.Tools.Emm
                 { "packageName", new SchemaString("Package Name", "The package name of the VPN app.") },
                 { "lockdownEnabled", new SchemaBoolean("Lockdown Enabled", "Disallows networking when the VPN is not connected.") },
             } },
-            { "autoDateAndTimeZone", new SchemaEnum("Auto Date and Time Zone", "Whether auto date, time, and time zone are enabled on a company-owned device. If this is set, then autoTimeRequired is ignored.") {
+            { "appAutoUpdatePolicy", new SchemaEnum("App Auto-Update Policy", "The app auto update policy, which controls when automatic app updates can be applied. Recommended alternative: autoUpdateMode which is set per app, provides greater flexibility around update frequency. When autoUpdateMode is set to AUTO_UPDATE_POSTPONED or AUTO_UPDATE_HIGH_PRIORITY, this field has no effect.") {
+                { "APP_AUTO_UPDATE_POLICY_UNSPECIFIED", "The auto-update policy is not set. Equivalent to CHOICE_TO_THE_USER." },
+                { "CHOICE_TO_THE_USER", "The user can control auto-updates." },
+                { "NEVER", "Apps are never auto-updated." },
+                { "WIFI_ONLY", "Apps are auto-updated over Wi-Fi only." },
+                { "ALWAYS", "Apps are auto-updated at any time. Data charges may apply." },
+            } },
+            { "autoDateAndTimeZone", new SchemaEnum("Auto Date and Time Zone", "Whether auto date, time, and time zone are enabled on a company-owned device.") {
                 { "AUTO_DATE_AND_TIME_ZONE_UNSPECIFIED", "Unspecified. Defaults to AUTO_DATE_AND_TIME_ZONE_USER_CHOICE." },
                 { "AUTO_DATE_AND_TIME_ZONE_USER_CHOICE", "Auto date, time, and time zone are left to user's choice." },
                 { "AUTO_DATE_AND_TIME_ZONE_ENFORCED", "Enforce auto date, time, and time zone on the device." },
@@ -65,10 +72,10 @@ namespace Aufbauwerk.Tools.Emm
             { "bluetoothContactSharingDisabled", new SchemaBoolean("Bluetooth Contact Sharing Disabled", "Whether bluetooth contact sharing is disabled.") },
             { "bluetoothDisabled", new SchemaBoolean("Bluetooth Disabled", "Whether bluetooth is disabled. Prefer this setting over bluetoothConfigDisabled because bluetoothConfigDisabled can be bypassed by the user.") },
             { "cameraAccess", new SchemaEnum("Camera Access", "Controls the use of the camera and whether the user has access to the camera access toggle.") {
-                { "CAMERA_ACCESS_UNSPECIFIED", "If cameraDisabled is true, this is equivalent to CAMERA_ACCESS_DISABLED. Otherwise, this is equivalent to CAMERA_ACCESS_USER_CHOICE." },
-                { "CAMERA_ACCESS_USER_CHOICE", "The field cameraDisabled is ignored. This is the default device behavior: all cameras on the device are available. On Android 12 and above, the user can use the camera access toggle." },
-                { "CAMERA_ACCESS_DISABLED", "The field cameraDisabled is ignored. All cameras on the device are disabled (for fully managed devices, this applies device-wide and for work profiles this applies only to the work profile). There are no explicit restrictions placed on the camera access toggle on Android 12 and above: on fully managed devices, the camera access toggle has no effect as all cameras are disabled. On devices with a work profile, this toggle has no effect on apps in the work profile, but it affects apps outside the work profile." },
-                { "CAMERA_ACCESS_ENFORCED", "The field cameraDisabled is ignored. All cameras on the device are available. On fully managed devices running Android 12 and above, the user is unable to use the camera access toggle. On devices which are not fully managed or which run Android 11 or below, this is equivalent to CAMERA_ACCESS_USER_CHOICE." },
+                { "CAMERA_ACCESS_UNSPECIFIED", "Unspecified. Defaults to CAMERA_ACCESS_USER_CHOICE." },
+                { "CAMERA_ACCESS_USER_CHOICE", "This is the default device behavior: all cameras on the device are available. On Android 12 and above, the user can use the camera access toggle." },
+                { "CAMERA_ACCESS_DISABLED", "All cameras on the device are disabled (for fully managed devices, this applies device-wide and for work profiles this applies only to the work profile). There are no explicit restrictions placed on the camera access toggle on Android 12 and above: on fully managed devices, the camera access toggle has no effect as all cameras are disabled. On devices with a work profile, this toggle has no effect on apps in the work profile, but it affects apps outside the work profile." },
+                { "CAMERA_ACCESS_ENFORCED", "All cameras on the device are available. On fully managed devices running Android 12 and above, the user is unable to use the camera access toggle. On devices which are not fully managed or which run Android 11 or below, this is equivalent to CAMERA_ACCESS_USER_CHOICE." },
             } },
             { "cellBroadcastsConfigDisabled", new SchemaBoolean("Cell Broadcasts Config Disabled", "Whether configuring cell broadcast is disabled.") },
             { "choosePrivateKeyRules", new SchemaObjectArray("Choose Private Key Rules", "Rules for determining apps' access to private keys.") {
@@ -80,7 +87,7 @@ namespace Aufbauwerk.Tools.Emm
             { "credentialsConfigDisabled", new SchemaBoolean("Credentials Config Disabled", "Whether configuring user credentials is disabled.") },
             { "crossProfilePolicies", new SchemaObject("Cross Profile Policies", "Cross-profile policies applied on the device.") {
                 { "crossProfileCopyPaste", new SchemaEnum("Cross Profile Copy Paste", "Whether text copied from one profile (personal or work) can be pasted in the other profile.") {
-                    { "CROSS_PROFILE_COPY_PASTE_UNSPECIFIED", "Unspecified. Defaults to COPY_FROM_WORK_TO_PERSONAL_DISALLOWED" },
+                    { "CROSS_PROFILE_COPY_PASTE_UNSPECIFIED", "Unspecified. Defaults to COPY_FROM_WORK_TO_PERSONAL_DISALLOWED." },
                     { "COPY_FROM_WORK_TO_PERSONAL_DISALLOWED", "Default. Prevents users from pasting into the personal profile text copied from the work profile. Text copied from the personal profile can be pasted into the work profile, and text copied from the work profile can be pasted into the work profile." },
                     { "CROSS_PROFILE_COPY_PASTE_ALLOWED", "Text copied in either profile can be pasted in the other profile." },
                 } },
@@ -90,10 +97,19 @@ namespace Aufbauwerk.Tools.Emm
                     { "DATA_SHARING_FROM_WORK_TO_PERSONAL_DISALLOWED", "Default. Prevents users from sharing data from the work profile to apps in the personal profile. Personal data can be shared with work apps." },
                     { "CROSS_PROFILE_DATA_SHARING_ALLOWED", "Data from either profile can be shared with the other profile." },
                 } },
-                { "showWorkContactsInPersonalProfile", new SchemaEnum("Show Work Contacts In Personal Profile", "Whether contacts stored in the work profile can be shown in personal profile contact searches and incoming calls.") {
+                { "exemptionsToShowWorkContactsInPersonalProfile", new SchemaObject("Exemptions to Show Work Contacts in Personal Profile", "List of apps which are excluded from the ShowWorkContactsInPersonalProfile setting. Supported on Android 14 and above.") {
+                    { "packageNames", new SchemaStringArray("Package Names", "A list of package names.") },
+                } },
+                { "showWorkContactsInPersonalProfile", new SchemaEnum("Show Work Contacts in Personal Profile", "Whether contacts stored in the work profile can be shown in personal profile contact searches and incoming calls.") {
                     { "SHOW_WORK_CONTACTS_IN_PERSONAL_PROFILE_UNSPECIFIED", "Unspecified. Defaults to SHOW_WORK_CONTACTS_IN_PERSONAL_PROFILE_ALLOWED." },
-                    { "SHOW_WORK_CONTACTS_IN_PERSONAL_PROFILE_DISALLOWED", "Prevents work profile contacts from appearing in personal profile contact searches and incoming calls" },
-                    { "SHOW_WORK_CONTACTS_IN_PERSONAL_PROFILE_ALLOWED", "Default. Allows work profile contacts to appear in personal profile contact searches and incoming calls" },
+                    { "SHOW_WORK_CONTACTS_IN_PERSONAL_PROFILE_DISALLOWED", "Prevents personal apps from accessing work profile contacts and looking up work contacts." },
+                    { "SHOW_WORK_CONTACTS_IN_PERSONAL_PROFILE_ALLOWED", "Default. Allows apps in the personal profile to access work profile contacts including contact searches and incoming calls." },
+                    { "SHOW_WORK_CONTACTS_IN_PERSONAL_PROFILE_DISALLOWED_EXCEPT_SYSTEM", "Prevents most personal apps from accessing work profile contacts including contact searches and incoming calls, except for the OEM default Dialer, Messages, and Contacts apps. Neither user-configured Dialer, Messages, and Contacts apps, nor any other system or play installed apps, will be able to query work contacts directly." },
+                } },
+                { "workProfileWidgetsDefault", new SchemaEnum("Work Profile Widgets Default", "Specifies the default behaviour for work profile widgets. If the policy does not specify workProfileWidgets for a specific application, it will behave according to the value specified here.") {
+                    { "WORK_PROFILE_WIDGETS_DEFAULT_UNSPECIFIED", "Unspecified. Defaults to WORK_PROFILE_WIDGETS_DEFAULT_DISALLOWED." },
+                    { "WORK_PROFILE_WIDGETS_DEFAULT_ALLOWED", "Work profile widgets are allowed by default. This means that if the policy does not specify workProfileWidgets as WORK_PROFILE_WIDGETS_DISALLOWED for the application, it will be able to add widgets to the home screen." },
+                    { "WORK_PROFILE_WIDGETS_DEFAULT_DISALLOWED", "Work profile widgets are disallowed by default. This means that if the policy does not specify workProfileWidgets as WORK_PROFILE_WIDGETS_ALLOWED for the application, it will be unable to add widgets to the home screen." },
                 } },
             } },
             { "dataRoamingDisabled", new SchemaBoolean("Data Roaming Disabled", "Whether roaming data services are disabled.") },
@@ -103,7 +119,55 @@ namespace Aufbauwerk.Tools.Emm
                 { "GRANT", "Automatically grant a permission." },
                 { "DENY", "Automatically deny a permission." },
             } },
+            { "deviceConnectivityManagement", new SchemaObject("Device Connectivity Management", "Covers controls for device connectivity such as Wi-Fi, USB data access, keyboard/mouse connections, and more.") {
+                { "configureWifi", new SchemaEnum("Configure Wi-Fi", "Controls Wi-Fi configuring privileges. Based on the option set, user will have either full or limited or no control in configuring Wi-Fi networks.") {
+                    { "CONFIGURE_WIFI_UNSPECIFIED", "Unspecified. Defaults to ALLOW_CONFIGURING_WIFI." },
+                    { "ALLOW_CONFIGURING_WIFI", "The user is allowed to configure Wi-Fi." },
+                    { "DISALLOW_ADD_WIFI_CONFIG", "Adding new Wi-Fi configurations is disallowed. The user is only able to switch between already configured networks. Supported on Android 13 and above, on fully managed devices and work profiles on company-owned devices. If the setting is not supported, ALLOW_CONFIGURING_WIFI is set." },
+                    { "DISALLOW_CONFIGURING_WIFI", "Disallows configuring Wi-Fi networks. Supported on fully managed devices and work profile on company-owned devices, on all supported API levels. For fully managed devices, setting this removes all configured networks and retains only the networks configured using openNetworkConfiguration policy. For work profiles on company-owned devices, existing configured networks are not affected and the user is not allowed to add, remove, or modify Wi-Fi networks. Note: If a network connection can't be made at boot time and configuring Wi-Fi is disabled then network escape hatch will be shown in order to refresh the device policy (see networkEscapeHatchEnabled)." },
+                } },
+                { "tetheringSettings", new SchemaEnum("Tethering Settings", "Controls tethering settings. Based on the value set, the user is partially or fully disallowed from using different forms of tethering.") {
+                    { "TETHERING_SETTINGS_UNSPECIFIED", "Unspecified. Defaults to ALLOW_ALL_TETHERING." },
+                    { "ALLOW_ALL_TETHERING", "Allows configuration and use of all forms of tethering." },
+                    { "DISALLOW_WIFI_TETHERING", "Disallows the user from using Wi-Fi tethering. Supported on company owned devices running Android 13 and above. If the setting is not supported, ALLOW_ALL_TETHERING will be set." },
+                    { "DISALLOW_ALL_TETHERING", "Disallows all forms of tethering. Supported on fully managed devices and work profile on company-owned devices, on all supported Android versions." },
+                } },
+                { "usbDataAccess", new SchemaEnum("USB Data Access", "Controls what files and/or data can be transferred via USB. Supported only on company-owned devices.") {
+                    { "USB_DATA_ACCESS_UNSPECIFIED", "Unspecified. Defaults to ALLOW_USB_DATA_TRANSFER." },
+                    { "ALLOW_USB_DATA_TRANSFER", "All types of USB data transfers are allowed." },
+                    { "DISALLOW_USB_FILE_TRANSFER", "Transferring files over USB is disallowed. Other types of USB data connections, such as mouse and keyboard connection, are allowed." },
+                    { "DISALLOW_USB_DATA_TRANSFER", "When set, all types of USB data transfers are prohibited. Supported for devices running Android 12 or above with USB HAL 1.3 or above. If the setting is not supported, DISALLOW_USB_FILE_TRANSFER will be set." },
+                } },
+                { "wifiDirectSettings", new SchemaEnum("Wi-Fi Direct Settings", "Controls configuring and using Wi-Fi direct settings. Supported on company-owned devices running Android 13 and above.") {
+                    { "WIFI_DIRECT_SETTINGS_UNSPECIFIED", "Unspecified. Defaults to ALLOW_WIFI_DIRECT." },
+                    { "ALLOW_WIFI_DIRECT", "The user is allowed to use Wi-Fi direct." },
+                    { "DISALLOW_WIFI_DIRECT", "The user is not allowed to use Wi-Fi direct." },
+                } },
+            } },
             { "deviceOwnerLockScreenInfo", new SchemaLocalizedString("Device Owner Lock Screen Info", "The device owner information to be shown on the lock screen.") },
+            { "deviceRadioState", new SchemaObject("Device Radio State", "Covers controls for radio state such as Wi-Fi, bluetooth, and more.") {
+                { "cellularTwoGState", new SchemaEnum("Cellular 2G State", "Controls whether cellular 2G setting can be toggled by the user or not.") {
+                    { "CELLULAR_TWO_G_STATE_UNSPECIFIED", "Unspecified. Defaults to CELLULAR_TWO_G_USER_CHOICE." },
+                    { "CELLULAR_TWO_G_USER_CHOICE", "The user is allowed to toggle cellular 2G on or off." },
+                    { "CELLULAR_TWO_G_DISABLED", "Cellular 2G is disabled. The user is not allowed to toggle cellular 2G on via settings." },
+                } },
+                { "airplaneModeState", new SchemaEnum("Airplane Mode State", "Controls whether airplane mode can be toggled by the user or not.") {
+                    { "AIRPLANE_MODE_STATE_UNSPECIFIED", "Unspecified. Defaults to AIRPLANE_MODE_USER_CHOICE." },
+                    { "AIRPLANE_MODE_USER_CHOICE", "The user is allowed to toggle airplane mode on or off." },
+                    { "AIRPLANE_MODE_DISABLED", "Airplane mode is disabled. The user is not allowed to toggle airplane mode on." },
+                } },
+                { "ultraWidebandState", new SchemaEnum("Ultra Wideband State", "Controls the state of the ultra wideband setting and whether the user can toggle it on or off.") {
+                    { "ULTRA_WIDEBAND_STATE_UNSPECIFIED", "Unspecified. Defaults to ULTRA_WIDEBAND_USER_CHOICE." },
+                    { "ULTRA_WIDEBAND_USER_CHOICE", "The user is allowed to toggle ultra wideband on or off." },
+                    { "ULTRA_WIDEBAND_DISABLED", "Ultra wideband is disabled. The user is not allowed to toggle ultra wideband on via settings." },
+                } },
+                { "wifiState", new SchemaEnum("Wi-Fi State", "Controls current state of Wi-Fi and if user can change its state.") {
+                    { "WIFI_STATE_UNSPECIFIED", "Unspecified. Defaults to WIFI_STATE_USER_CHOICE." },
+                    { "WIFI_STATE_USER_CHOICE", "User is allowed to enable/disable Wi-Fi." },
+                    { "WIFI_ENABLED", "Wi-Fi is on and the user is not allowed to turn it off." },
+                    { "WIFI_DISABLED", "Wi-Fi is off and the user is not allowed to turn it on." },
+                } },
+            } },
             { "encryptionPolicy", new SchemaEnum("Encryption Policy", "Whether encryption is enabled") {
                 { "ENCRYPTION_POLICY_UNSPECIFIED", "This value is ignored, i.e. no encryption required" },
                 { "ENABLED_WITHOUT_PASSWORD", "Encryption required but no password required to boot" },
@@ -125,6 +189,7 @@ namespace Aufbauwerk.Tools.Emm
                 { "FACE", "Disable face authentication on secure keyguard screens." },
                 { "IRIS", "Disable iris authentication on secure keyguard screens." },
                 { "BIOMETRICS", "Disable all biometric authentication on secure keyguard screens." },
+                { "SHORTCUTS", "Disable all shortcuts on secure keyguard screen on Android 14 and above." },
                 { "ALL_FEATURES", "Disable all current and future keyguard customizations." },
             } },
             { "kioskCustomization", new SchemaObject("Kiosk Customization", "Settings controlling the behavior of a device in kiosk mode. To enable kiosk mode, set kioskCustomLauncherEnabled to true or specify an app in the policy with installType KIOSK.") {
@@ -166,10 +231,10 @@ namespace Aufbauwerk.Tools.Emm
             { "longSupportMessage", new SchemaLocalizedString("Long Support Message", "A message displayed to the user in the device administrators settings screen.") },
             { "maximumTimeToLock", new SchemaInteger("Maximum Time To Lock", "Maximum time in milliseconds for user activity until the device locks. A value of 0 means there is no restriction.") },
             { "microphoneAccess", new SchemaEnum("Microphone Access", "Controls the use of the microphone and whether the user has access to the microphone access toggle. This applies only on fully managed devices.") {
-                { "MICROPHONE_ACCESS_UNSPECIFIED", "If unmuteMicrophoneDisabled is true, this is equivalent to MICROPHONE_ACCESS_DISABLED. Otherwise, this is equivalent to MICROPHONE_ACCESS_USER_CHOICE." },
-                { "MICROPHONE_ACCESS_USER_CHOICE", "The field unmuteMicrophoneDisabled is ignored. This is the default device behavior: the microphone on the device is available. On Android 12 and above, the user can use the microphone access toggle." },
-                { "MICROPHONE_ACCESS_DISABLED", "The field unmuteMicrophoneDisabled is ignored. The microphone on the device is disabled (for fully managed devices, this applies device-wide). The microphone access toggle has no effect as the microphone is disabled." },
-                { "MICROPHONE_ACCESS_ENFORCED", "The field unmuteMicrophoneDisabled is ignored. The microphone on the device is available. On devices running Android 12 and above, the user is unable to use the microphone access toggle. On devices which run Android 11 or below, this is equivalent to MICROPHONE_ACCESS_USER_CHOICE." },
+                { "MICROPHONE_ACCESS_UNSPECIFIED", "This is equivalent to MICROPHONE_ACCESS_USER_CHOICE." },
+                { "MICROPHONE_ACCESS_USER_CHOICE", "This is the default device behavior: the microphone on the device is available. On Android 12 and above, the user can use the microphone access toggle." },
+                { "MICROPHONE_ACCESS_DISABLED", "The microphone on the device is disabled (for fully managed devices, this applies device-wide). The microphone access toggle has no effect as the microphone is disabled." },
+                { "MICROPHONE_ACCESS_ENFORCED", "The microphone on the device is available. On devices running Android 12 and above, the user is unable to use the microphone access toggle. On devices which run Android 11 or below, this is equivalent to MICROPHONE_ACCESS_USER_CHOICE." },
             } },
             { "minimumApiLevel", new SchemaInteger("Minimum API Level", "The minimum allowed Android API level.") },
             { "mobileNetworksConfigDisabled", new SchemaBoolean("Mobile Networks Config Disabled", "Whether configuring mobile networks is disabled.") },
@@ -286,6 +351,11 @@ namespace Aufbauwerk.Tools.Emm
                 { "passwordMinimumNonLetter", new SchemaInteger("Password Minimum Non Letter", "Minimum number of non-letter characters (numerical digits or symbols) required in the password. Only enforced when passwordQuality is COMPLEX.") },
                 { "passwordMinimumNumeric", new SchemaInteger("Password Minimum Numeric", "Minimum number of numerical digits required in the password. Only enforced when passwordQuality is COMPLEX.") },
                 { "passwordMinimumSymbols", new SchemaInteger("Password Minimum Symbols", "Minimum number of symbols required in the password. Only enforced when passwordQuality is COMPLEX.") },
+                { "unifiedLockSettings", new SchemaEnum("Unified Lock Settings", "Controls whether a unified lock is allowed for the device and the work profile, on devices running Android 9 and above with a work profile. This can be set only if passwordScope is set to SCOPE_PROFILE, the policy will be rejected otherwise. If user has not set a separate work lock and this field is set to REQUIRE_SEPARATE_WORK_LOCK, a NonComplianceDetail is reported with nonComplianceReason set to USER_ACTION.") {
+                    { "UNIFIED_LOCK_SETTINGS_UNSPECIFIED", "Unspecified. Defaults to ALLOW_UNIFIED_WORK_AND_PERSONAL_LOCK." },
+                    { "ALLOW_UNIFIED_WORK_AND_PERSONAL_LOCK", "A common lock for the device and the work profile is allowed." },
+                    { "REQUIRE_SEPARATE_WORK_LOCK", "A separate lock for the work profile is required." },
+                } },
             } },
             { "permissionGrants", new SchemaObjectMap("Permission Grants", "Explicit permission or group grants or denials for all apps. These values override the defaultPermissionPolicy.", key: ("permission",new SchemaString("Permission", "The Android permission or group, e.g. android.permission.READ_CALENDAR or android.permission_group.CALENDAR.")), editAllProperties: true) {
                 { "policy", new SchemaEnum("Policy", "The policy for granting the permission.") {
@@ -410,11 +480,8 @@ namespace Aufbauwerk.Tools.Emm
                 { "startMinutes", new SchemaInteger("Start Minutes", "If the type is WINDOWED, the start of the maintenance window, measured as the number of minutes after midnight in the device's local time. This value must be between 0 and 1439, inclusive."){ Maximum=1439 } },
                 { "endMinutes", new SchemaInteger("End Minutes", "If the type is WINDOWED, the end of the maintenance window, measured as the number of minutes after midnight in device's local time. This value must be between 0 and 1439, inclusive. If this value is less than startMinutes, then the maintenance window spans midnight. If the maintenance window specified is smaller than 30 minutes, the actual window is extended to 30 minutes beyond the start time."){ Maximum=1439 } },
             } },
-            { "tetheringConfigDisabled", new SchemaBoolean("Tethering Config Disabled", "Whether configuring tethering and portable hotspots is disabled.") },
             { "uninstallAppsDisabled", new SchemaBoolean("Uninstall Apps Disabled", "Whether user uninstallation of applications is disabled.") },
-            { "usbFileTransferDisabled", new SchemaBoolean("USB File Transfer Disabled", "Whether transferring files over USB is disabled.") },
             { "vpnConfigDisabled", new SchemaBoolean("VPN Config Disabled", "Whether configuring VPN is disabled.") },
-            { "wifiConfigDisabled", new SchemaBoolean("Wi-Fi Config Disabled", "Whether configuring Wi-Fi access points is disabled. Note: If a network connection can't be made at boot time and configuring Wi-Fi is disabled then network escape hatch will be shown in order to refresh the device policy (see networkEscapeHatchEnabled).") },
         };
     }
 }
