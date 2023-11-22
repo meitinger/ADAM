@@ -14,7 +14,7 @@
         {
     %>
     <div class="uk-margin">
-        <img src="<%= HttpUtility.HtmlAttributeEncode(Enterprise.Current.Logo.AbsoluteUri) %>" alt="<%= HttpUtility.HtmlAttributeEncode(Enterprise.Current.DisplayName) %>" />
+        <img class="uk-width-1-1" src="<%= HttpUtility.HtmlAttributeEncode(Enterprise.Current.Logo.AbsoluteUri) %>" alt="<%= HttpUtility.HtmlAttributeEncode(Enterprise.Current.DisplayName) %>" />
     </div>
     <%
         }
