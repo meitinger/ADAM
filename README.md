@@ -20,6 +20,7 @@ Users can register fully managed devices as well as work profiles using Zero Tou
    - Google.Apis.Core (1.64.0)
    - Microsoft.CodeDom.Providers.DotNetCompilerPlatform (4.1.0)
    - Newtonsoft.Json (13.0.3)
+   - QRCoder (1.4.3)
 8. Create a `Web.config` based on `Web.sample.config` and adjust the settings in the `appSettings` section to your needs:
    - `DOMAIN`: The Active Directory domain name.
    - `CREDENTIALS`: Path to the downloaded service account key file.

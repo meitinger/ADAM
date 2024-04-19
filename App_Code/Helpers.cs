@@ -22,6 +22,7 @@ using Google;
 using Google.Apis.AndroidManagement.v1.Data;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using QRCoder;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -187,6 +188,8 @@ namespace Aufbauwerk.Tools.Emm
         public static string GetDisplayName(this Principal principal) => string.IsNullOrEmpty(principal.DisplayName) ? principal.Name : principal.DisplayName;
 
         public static string GetMessage(this GoogleApiException e) => e.Error?.Message ?? e.Message;
+
+        public static string GetQrCodeImageUrl(this EnrollmentToken token) => $"data:image/png;base64,{new Base64QRCode(new QRCodeGenerator().CreateQrCode(token.QrCode, QRCodeGenerator.ECCLevel.Q)).GetGraphic(2)}";
 
         public static T ID<T>(this T control, string id) where T : Control
         {

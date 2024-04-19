@@ -52,7 +52,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             }
             var expiration = ((DateTime)token.ExpirationTimestamp).ToLocalTime();
             ExpirationTimer.Interval = (int)(expiration - DateTime.Now).TotalMilliseconds;
-            QrImage.ImageUrl = System.FormattableString.Invariant($"https://chart.googleapis.com/chart?cht=qr&chs={300}x{300}&chl={Uri.EscapeDataString(token.QrCode)}");
+            QrImage.ImageUrl = token.GetQrCodeImageUrl();
             InputPanel.Enabled = false;
             OutputPanel.Visible = true;
             ExpirationTimer.Enabled = true;
