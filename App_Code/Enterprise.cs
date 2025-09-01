@@ -49,6 +49,7 @@ namespace Aufbauwerk.Tools.Emm
     public class Enterprise
     {
         public const string DefaultPolicyName = "default";
+        public static readonly TimeSpan EnrollmentTimeout = TimeSpan.FromSeconds(900);
         private const long TimeOrigin = 621355968000000000;
 
         private class PrincipalEqualityComparer : IEqualityComparer<Principal>
@@ -132,7 +133,7 @@ namespace Aufbauwerk.Tools.Emm
             {
                 AdditionalData = deviceDisplayName,
                 AllowPersonalUsage = workProfile ? "PERSONAL_USAGE_ALLOWED" : "PERSONAL_USAGE_DISALLOWED",
-                Duration = "900s",
+                Duration = Invariant($"{(int)EnrollmentTimeout.TotalSeconds}s"),
                 PolicyName = policyName is null ? null : GetFullPolicyName(EnsureValidName(policyName, nameof(policyName)))
             }, Name).Execute();
             var qrCode = JObject.Parse(token.QrCode);

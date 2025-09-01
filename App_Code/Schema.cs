@@ -650,10 +650,8 @@ namespace Aufbauwerk.Tools.Emm
         protected override Schema<JObject> GetSchema(JObject value, int index)
         {
             // extract the key in small steps and get the schema based on it
-            var property = value[KeyProperty] ?? DefaultKeyValue;
-            if (property is null) throw new SchemaException($"Missing {KeyProperty} property.");
-            var key = property.AsStringNoThrow();
-            if (key is null) { throw new SchemaException($"Property {KeyProperty} is a {property.Type}, expected {JTokenType.String}."); }
+            var property = value[KeyProperty] ?? DefaultKeyValue ?? throw new SchemaException($"Missing {KeyProperty} property.");
+            var key = property.AsStringNoThrow() ?? throw new SchemaException($"Property {KeyProperty} is a {property.Type}, expected {JTokenType.String}.");
             if (key.Length == 0) { throw new SchemaException($"Empty {KeyProperty} property."); }
             return GetCachedSchema(key);
         }

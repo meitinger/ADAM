@@ -50,7 +50,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 Page.Alert(ex.GetMessage());
                 return;
             }
-            var expiration = ((DateTime)token.ExpirationTimestamp).ToLocalTime();
+            var expiration = token.ExpirationTimestampDateTimeOffset?.ToLocalTime() ?? (DateTimeOffset.Now + Enterprise.EnrollmentTimeout);
             ExpirationTimer.Interval = (int)(expiration - DateTime.Now).TotalMilliseconds;
             QrImage.ImageUrl = token.GetQrCodeImageUrl();
             InputPanel.Enabled = false;

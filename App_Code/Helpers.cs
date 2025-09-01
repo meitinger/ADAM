@@ -213,7 +213,7 @@ namespace Aufbauwerk.Tools.Emm
             return schema;
         }
 
-        public static Policy ToPolicy(this JToken token) => token?.ToObject<Policy>(_serializer) ?? new();
+        public static Policy ToPolicy(this JToken? token) => token?.ToObject<Policy>(_serializer) ?? new();
 
         public static JToken? ToToken(this Policy? policy) => policy is null ? null : JToken.FromObject(policy, _serializer);
 
