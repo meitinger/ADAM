@@ -14,13 +14,13 @@ Users can register fully managed devices as well as work profiles using Zero Tou
 5. Download the source code into a directory served by IIS. Ensure the directory is converted to an application.
 6. Enable **Windows Authentication** and disable **Anonymous Authentication** for the IIS application.
 7. Install the following NuGet packages within that directory:
-   - Google.Apis (1.64.0)
-   - Google.Apis.AndroidManagement.v1 (1.64.0.3219)
-   - Google.Apis.Auth (1.64.0)
-   - Google.Apis.Core (1.64.0)
+   - Google.Apis (1.70.0)
+   - Google.Apis.AndroidManagement.v1 (1.70.0.3868)
+   - Google.Apis.Auth (1.70.0)
+   - Google.Apis.Core (1.70.0)
    - Microsoft.CodeDom.Providers.DotNetCompilerPlatform (4.1.0)
    - Newtonsoft.Json (13.0.3)
-   - QRCoder (1.4.3)
+   - QRCoder (1.6.0)
 8. Create a `Web.config` based on `Web.sample.config` and adjust the settings in the `appSettings` section to your needs:
    - `DOMAIN`: The Active Directory domain name.
    - `CREDENTIALS`: Path to the downloaded service account key file.

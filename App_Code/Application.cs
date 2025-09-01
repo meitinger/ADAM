@@ -87,7 +87,6 @@ namespace Aufbauwerk.Tools.Emm
 
         public static SchemaObject FromApplication(Application application) => new(application.Title, application.Description)
         {
-            { "disabled", new SchemaBoolean("Disabled", "Whether the app is disabled. When disabled, the app data is still preserved.") },
             { "installType", new SchemaEnum("Install Type", "The type of installation to perform.") {
                 { "INSTALL_TYPE_UNSPECIFIED", "Unspecified. Defaults to AVAILABLE." },
                 { "PREINSTALLED", "The app is automatically installed and can be removed by the user." },
@@ -97,13 +96,6 @@ namespace Aufbauwerk.Tools.Emm
                 { "REQUIRED_FOR_SETUP", "The app is automatically installed and can't be removed by the user and will prevent setup from completion until installation is complete." },
                 { "KIOSK", "The app is automatically installed in kiosk mode: it's set as the preferred home intent and whitelisted for lock task mode. Device setup won't complete until the app is installed. After installation, users won't be able to remove the app. You can only set this installType for one app per policy. When this is present in the policy, status bar will be automatically disabled." },
             } },
-            { "autoUpdateMode", new SchemaEnum("Auto Update Mode", "Controls the auto-update mode for the app.") {
-                { "AUTO_UPDATE_MODE_UNSPECIFIED", "Unspecified. Defaults to AUTO_UPDATE_DEFAULT." },
-                { "AUTO_UPDATE_DEFAULT", "The app is automatically updated with low priority to minimize the impact on the user. The app is updated when all of the following constraints are met: The device is not actively used. The device is connected to an unmetered network. The device is charging. The device is notified about a new update within 24 hours after it is published by the developer, after which the app is updated the next time the constraints above are met." },
-                { "AUTO_UPDATE_POSTPONED", "The app is not automatically updated for a maximum of 90 days after the app becomes out of date. 90 days after the app becomes out of date, the latest available version is installed automatically with low priority (see AUTO_UPDATE_DEFAULT). After the app is updated it is not automatically updated again until 90 days after it becomes out of date again. The user can still manually update the app from the Play Store at any time." },
-                { "AUTO_UPDATE_HIGH_PRIORITY", "The app is updated as soon as possible. No constraints are applied. The device is notified immediately about a new update after it becomes available." },
-            } },
-            { "managedConfiguration", new SchemaObject("Managed Configuration", "Managed configuration applied to the app.").SaveAdd(application.ManagedProperties, managedProperty => managedProperty.Key, FromManagedProperty) },
             { "defaultPermissionPolicy", new SchemaEnum("Default Permission Policy", "The default policy for all permissions requested by the app. If specified, this overrides the policy-level default_permission_policy which applies to all apps. It does not override the permission_grants which applies to all apps.") {
                 { "PERMISSION_POLICY_UNSPECIFIED", "Policy not specified. If no policy is specified for a permission at any level, then the PROMPT behavior is used by default." },
                 { "PROMPT", "Prompt the user to grant a permission." },
@@ -123,6 +115,8 @@ namespace Aufbauwerk.Tools.Emm
                     } },
                 }
             },
+            { "managedConfiguration", new SchemaObject("Managed Configuration", "Managed configuration applied to the app.").SaveAdd(application.ManagedProperties, managedProperty => managedProperty.Key, FromManagedProperty) },
+            { "disabled", new SchemaBoolean("Disabled", "Whether the app is disabled. When disabled, the app data is still preserved.") },
             { "minimumVersionCode", new SchemaInteger("Minimum Version Code", "The minimum version of the app that runs on the device. If set, the device attempts to update the app to at least this version code. If the app is not up-to-date, the device will contain a NonComplianceDetail with non_compliance_reason set to APP_NOT_UPDATED. The app must already be published to Google Play with a version code greater than or equal to this value. At most 20 apps may specify a minimum version code per policy.") },
             { "delegatedScopes", new SchemaFlags("Delegated Scopes", "The scopes delegated to the app from Android Device Policy.") {
                 { "DELEGATED_SCOPE_UNSPECIFIED", "No delegation scope specified." },
@@ -139,6 +133,12 @@ namespace Aufbauwerk.Tools.Emm
                 { "CONNECTED_WORK_AND_PERSONAL_APP_DISALLOWED", "Default. Prevents the app from communicating cross-profile." },
                 { "CONNECTED_WORK_AND_PERSONAL_APP_ALLOWED", "Allows the app to communicate across profiles after receiving user consent." },
             } },
+            { "autoUpdateMode", new SchemaEnum("Auto Update Mode", "Controls the auto-update mode for the app.") {
+                { "AUTO_UPDATE_MODE_UNSPECIFIED", "Unspecified. Defaults to AUTO_UPDATE_DEFAULT." },
+                { "AUTO_UPDATE_DEFAULT", "The app is automatically updated with low priority to minimize the impact on the user. The app is updated when all of the following constraints are met: The device is not actively used. The device is connected to an unmetered network. The device is charging. The device is notified about a new update within 24 hours after it is published by the developer, after which the app is updated the next time the constraints above are met." },
+                { "AUTO_UPDATE_POSTPONED", "The app is not automatically updated for a maximum of 90 days after the app becomes out of date. 90 days after the app becomes out of date, the latest available version is installed automatically with low priority (see AUTO_UPDATE_DEFAULT). After the app is updated it is not automatically updated again until 90 days after it becomes out of date again. The user can still manually update the app from the Play Store at any time." },
+                { "AUTO_UPDATE_HIGH_PRIORITY", "The app is updated as soon as possible. No constraints are applied. The device is notified immediately about a new update after it becomes available." },
+            } },
             { "alwaysOnVpnLockdownExemption", new SchemaEnum("Always-On VPN Lockdown Exemption", "Specifies whether the app is allowed networking when the VPN is not connected and alwaysOnVpnPackage.lockdownEnabled is enabled.") {
                 { "ALWAYS_ON_VPN_LOCKDOWN_EXEMPTION_UNSPECIFIED", "Unspecified. Defaults to VPN_LOCKDOWN_ENFORCED." },
                 { "VPN_LOCKDOWN_ENFORCED", "The app respects the always-on VPN lockdown setting." },
@@ -148,6 +148,42 @@ namespace Aufbauwerk.Tools.Emm
                 { "WORK_PROFILE_WIDGETS_UNSPECIFIED", "Unspecified. Defaults to workProfileWidgetsDefault." },
                 { "WORK_PROFILE_WIDGETS_ALLOWED", "Work profile widgets are allowed. This means the application will be able to add widgets to the home screen." },
                 { "WORK_PROFILE_WIDGETS_DISALLOWED", "Work profile widgets are disallowed. This means the application will not be able to add widgets to the home screen." },
+            } },
+            { "credentialProviderPolicy", new SchemaEnum("Credential Provider Policy", "Whether the app is allowed to act as a credential provider on Android 14 and above.") {
+                { "CREDENTIAL_PROVIDER_POLICY_UNSPECIFIED", "Unspecified. The behaviour is governed by credentialProviderPolicyDefault." },
+                { "CREDENTIAL_PROVIDER_ALLOWED", "App is allowed to act as a credential provider." },
+            } },
+            { "installConstraint", new SchemaObjectArray("Install Constraint", "The constraints for installing the app. You can specify a maximum of one InstallConstraint. Multiple constraints are rejected.") {
+                { "networkTypeConstraint", new SchemaEnum("Network Type Constraint", "Network type constraint.") {
+                    { "NETWORK_TYPE_CONSTRAINT_UNSPECIFIED", "Unspecified. Default to INSTALL_ON_ANY_NETWORK." },
+                    { "INSTALL_ON_ANY_NETWORK", "Any active networks (Wi-Fi, cellular, etc.)." },
+                    { "INSTALL_ONLY_ON_UNMETERED_NETWORK", "Any unmetered network (e.g. Wi-FI)." },
+                } },
+                { "chargingConstraint", new SchemaEnum("Charging Constraint", "Charging constraint.") {
+                    { "CHARGING_CONSTRAINT_UNSPECIFIED", "Unspecified. Default to CHARGING_NOT_REQUIRED." },
+                    { "CHARGING_NOT_REQUIRED", "Device doesn't have to be charging." },
+                    { "INSTALL_ONLY_WHEN_CHARGING", "Device has to be charging." },
+                } },
+                { "deviceIdleConstraint", new SchemaEnum("Device Idle Constraint", "Device idle state constraint.") {
+                    { "DEVICE_IDLE_CONSTRAINT_UNSPECIFIED", "Unspecified. Default to DEVICE_IDLE_NOT_REQUIRED." },
+                    { "DEVICE_IDLE_NOT_REQUIRED", "Device doesn't have to be idle, app can be installed while the user is interacting with the device." },
+                    { "INSTALL_ONLY_WHEN_DEVICE_IDLE", "Device has to be idle." },
+                } },
+            } },
+            { "installPriority", new SchemaInteger("Install Priority", "Amongst apps with installType set to FORCE_INSTALLED and PREINSTALLED this controls the relative priority of installation. A value of 0 (default) means this app has no priority over other apps. For values between 1 and 10,000, a lower value means a higher priority. Values outside of the range 0 to 10,000 inclusive are rejected."){ Maximum = 10000 } },
+            { "userControlSettings", new SchemaEnum("User Control Settings", "Specifies whether user control is permitted for the app. User control includes user actions like force-stopping and clearing app data. Certain types of apps have special treatment, see USER_CONTROL_SETTINGS_UNSPECIFIED and USER_CONTROL_ALLOWED for more details.") {
+                { "USER_CONTROL_SETTINGS_UNSPECIFIED", "Uses the default behaviour of the app to determine if user control is allowed or disallowed. User control is allowed by default for most apps but disallowed for following types of apps: extension apps (see extensionConfig for more details), kiosk apps (see KIOSK install type for more details), other critical system apps" },
+                { "USER_CONTROL_ALLOWED", "User control is allowed for the app. Kiosk apps can use this to allow user control. For extension apps (see extensionConfig for more details), user control is disallowed even if this value is set. For kiosk apps (see KIOSK install type for more details), this value can be used to allow user control." },
+                { "USER_CONTROL_DISALLOWED", "User control is disallowed for the app. This is supported on Android 11 and above." },
+            } },
+            { "preferentialNetworkId", new SchemaEnum("Preferential Network Id", " ID of the preferential network the application uses. There must be a configuration for the specified network ID in preferentialNetworkServiceConfigs. If set to PREFERENTIAL_NETWORK_ID_UNSPECIFIED, the application will use the default network ID specified in defaultPreferentialNetworkId. See the documentation of defaultPreferentialNetworkId for the list of apps excluded from this defaulting. This applies on both work profiles and fully managed devices on Android 13 and above.") {
+                { "PREFERENTIAL_NETWORK_ID_UNSPECIFIED", "Whether this value is valid and what it means depends on where it is used, and this is documented on the relevant fields." },
+                { "NO_PREFERENTIAL_NETWORK", "Application does not use any preferential network." },
+                { "PREFERENTIAL_NETWORK_ID_ONE", "Preferential network identifier 1." },
+                { "PREFERENTIAL_NETWORK_ID_TWO", "Preferential network identifier 2." },
+                { "PREFERENTIAL_NETWORK_ID_THREE", "Preferential network identifier 3." },
+                { "PREFERENTIAL_NETWORK_ID_FOUR", "Preferential network identifier 4." },
+                { "PREFERENTIAL_NETWORK_ID_FIVE", "Preferential network identifier 5." },
             } },
         };
     }

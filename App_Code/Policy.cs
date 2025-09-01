@@ -63,6 +63,16 @@ namespace Aufbauwerk.Tools.Emm
                 { "WIFI_ONLY", "Apps are auto-updated over Wi-Fi only." },
                 { "ALWAYS", "Apps are auto-updated at any time. Data charges may apply." },
             } },
+            { "appFunctions", new SchemaEnum("App Functions", "Controls whether apps on the device for fully managed devices or in the work profile for devices with work profiles are allowed to expose app functions.") {
+                { "APP_FUNCTIONS_UNSPECIFIED", "Unspecified. Defaults to APP_FUNCTIONS_ALLOWED." },
+                { "APP_FUNCTIONS_DISALLOWED", "Apps on the device for fully managed devices or in the work profile for devices with work profiles are not allowed to expose app functions. If this is set, crossProfileAppFunctions must not be set to CROSS_PROFILE_APP_FUNCTIONS_ALLOWED, otherwise the policy will be rejected." },
+                { "APP_FUNCTIONS_ALLOWED", "Apps on the device for fully managed devices or in the work profile for devices with work profiles are allowed to expose app functions." },
+            } },
+            { "assistContentPolicy", new SchemaEnum("Assist Content Policy", "Controls whether AssistContent is allowed to be sent to a privileged app such as an assistant app. AssistContent includes screenshots and information about an app, such as package name. This is supported on Android 15 and above.") {
+                { "ASSIST_CONTENT_POLICY_UNSPECIFIED", "Unspecified. Defaults to ASSIST_CONTENT_ALLOWED." },
+                { "ASSIST_CONTENT_DISALLOWED", "Assist content is blocked from being sent to a privileged app." },
+                { "ASSIST_CONTENT_ALLOWED", "Assist content is allowed to be sent to a privileged app." },
+            } },
             { "autoDateAndTimeZone", new SchemaEnum("Auto Date and Time Zone", "Whether auto date, time, and time zone are enabled on a company-owned device.") {
                 { "AUTO_DATE_AND_TIME_ZONE_UNSPECIFIED", "Unspecified. Defaults to AUTO_DATE_AND_TIME_ZONE_USER_CHOICE." },
                 { "AUTO_DATE_AND_TIME_ZONE_USER_CHOICE", "Auto date, time, and time zone are left to user's choice." },
@@ -84,6 +94,11 @@ namespace Aufbauwerk.Tools.Emm
                 { "privateKeyAlias", new SchemaString("Private Key Alias", "The alias of the private key to be used.") },
             } },
             { "createWindowsDisabled", new SchemaBoolean("Create Windows Disabled", "Whether creating windows besides app windows is disabled.") },
+            { "credentialProviderPolicyDefault", new SchemaEnum("Credential Provider Policy Default", "Controls which apps are allowed to act as credential providers on Android 14 and above. These apps store credentials, see this and this for details.") {
+                { "CREDENTIAL_PROVIDER_POLICY_DEFAULT_UNSPECIFIED", "Unspecified. Defaults to CREDENTIAL_PROVIDER_DEFAULT_DISALLOWED." },
+                { "CREDENTIAL_PROVIDER_DEFAULT_DISALLOWED", "Apps with credentialProviderPolicy unspecified are not allowed to act as a credential provider." },
+                { "CREDENTIAL_PROVIDER_DEFAULT_DISALLOWED_EXCEPT_SYSTEM", "Apps with credentialProviderPolicy unspecified are not allowed to act as a credential provider except for the OEM default credential providers. OEM default credential providers are always allowed to act as credential providers." },
+            } },
             { "credentialsConfigDisabled", new SchemaBoolean("Credentials Config Disabled", "Whether configuring user credentials is disabled.") },
             { "crossProfilePolicies", new SchemaObject("Cross Profile Policies", "Cross-profile policies applied on the device.") {
                 { "crossProfileCopyPaste", new SchemaEnum("Cross Profile Copy Paste", "Whether text copied from one profile (personal or work) can be pasted in the other profile.") {
@@ -168,10 +183,34 @@ namespace Aufbauwerk.Tools.Emm
                     { "WIFI_DISABLED", "Wi-Fi is off and the user is not allowed to turn it on." },
                 } },
             } },
+            { "displaySettings", new SchemaObject("Display Settings", "Controls for the display settings.") {
+                { "screenBrightnessSettings", new SchemaObject("Screen Brightness Settings", "Controls the screen brightness settings.") {
+                    { "screenBrightnessMode", new SchemaEnum("Screen Brightness Mode", "Controls the screen brightness mode.") {
+                        { "SCREEN_BRIGHTNESS_MODE_UNSPECIFIED", "Unspecified. Defaults to BRIGHTNESS_USER_CHOICE." },
+                        { "BRIGHTNESS_USER_CHOICE", "The user is allowed to configure the screen brightness. screenBrightness must not be set." },
+                        { "BRIGHTNESS_AUTOMATIC", "The screen brightness mode is automatic in which the brightness is automatically adjusted and the user is not allowed to configure the screen brightness. screenBrightness can still be set and it is taken into account while the brightness is automatically adjusted. Supported on Android 9 and above on fully managed devices." },
+                        { "BRIGHTNESS_FIXED", "The screen brightness mode is fixed in which the brightness is set to screenBrightness and the user is not allowed to configure the screen brightness. screenBrightness must be set. Supported on Android 9 and above on fully managed devices." },
+                    } },
+                    { "screenBrightness", new SchemaInteger("Screen Brightness", "The screen brightness between 1 and 255 where 1 is the lowest and 255 is the highest brightness. A value of 0 (default) means no screen brightness set. Any other value is rejected. screenBrightnessMode must be either BRIGHTNESS_AUTOMATIC or BRIGHTNESS_FIXED to set this."){ Maximum = 255 } },
+                } },
+                { "screenTimeoutSettings", new SchemaObject("Screen Timeout Settings", "Controls the screen timeout settings.") {
+                    { "screenTimeoutMode", new SchemaEnum("Screen Timeout Mode", "Controls whether the user is allowed to configure the screen timeout.") {
+                        { "SCREEN_TIMEOUT_MODE_UNSPECIFIED", "Defaults to SCREEN_TIMEOUT_USER_CHOICE." },
+                        { "SCREEN_TIMEOUT_USER_CHOICE", "The user is allowed to configure the screen timeout. screenTimeout must not be set." },
+                        { "SCREEN_TIMEOUT_ENFORCED", "The screen timeout is set to screenTimeout and the user is not allowed to configure the timeout. screenTimeout must be set. Supported on Android 9 and above on fully managed devices." },
+                    } },
+                    { "screenTimeout", new SchemaDuration("Screen Timeout", "Controls the screen timeout duration. The screen timeout duration must be greater than 0, otherwise it is rejected. Additionally, it should not be greater than maximumTimeToLock, otherwise the screen timeout is set to maximumTimeToLock and a NonComplianceDetail with INVALID_VALUE reason and SCREEN_TIMEOUT_GREATER_THAN_MAXIMUM_TIME_TO_LOCK specific reason is reported. If the screen timeout is less than a certain lower bound, it is set to the lower bound. The lower bound may vary across devices. If this is set, screenTimeoutMode must be SCREEN_TIMEOUT_ENFORCED. Supported on Android 9 and above on fully managed devices.") },
+                } },
+            } },
             { "encryptionPolicy", new SchemaEnum("Encryption Policy", "Whether encryption is enabled") {
                 { "ENCRYPTION_POLICY_UNSPECIFIED", "This value is ignored, i.e. no encryption required" },
                 { "ENABLED_WITHOUT_PASSWORD", "Encryption required but no password required to boot" },
                 { "ENABLED_WITH_PASSWORD", "Encryption required with password required to boot" },
+            } },
+            { "enterpriseDisplayNameVisibility", new SchemaEnum("Enterprise DisplayName Visibility", "Controls whether the enterpriseDisplayName is visible on the device (e.g. lock screen message on company-owned devices).") {
+                { "ENTERPRISE_DISPLAY_NAME_VISIBILITY_UNSPECIFIED", "Unspecified. Defaults to displaying the enterprise name that's set at the time of device setup. In future, this will default to ENTERPRISE_DISPLAY_NAME_VISIBLE." },
+                { "ENTERPRISE_DISPLAY_NAME_VISIBLE", "The enterprise display name is visible on the device. Supported on work profiles on Android 7 and above. Supported on fully managed devices on Android 8 and above." },
+                { "ENTERPRISE_DISPLAY_NAME_HIDDEN", "The enterprise display name is hidden on the device." },
             } },
             { "factoryResetDisabled", new SchemaBoolean("Factory Reset Disabled", "Whether factory resetting from settings is disabled.") },
             { "frpAdminEmails", new SchemaStringArray("FRP Admin Emails", "Email addresses of device administrators for factory reset protection. When the device is factory reset, it will require one of these admins to log in with the Google account email and password to unlock the device. If no admins are specified, the device won't provide factory reset protection.") },
@@ -417,6 +456,11 @@ namespace Aufbauwerk.Tools.Emm
                 { "PREFERENTIAL_NETWORK_SERVICE_DISABLED", "Preferential network service is disabled on the work profile." },
                 { "PREFERENTIAL_NETWORK_SERVICE_ENABLED", "Preferential network service is enabled on the work profile." },
             } },
+            { "printingPolicy", new SchemaEnum("Printing Policy", "Controls whether printing is allowed. This is supported on devices running Android 9 and above.") {
+                { "PRINTING_POLICY_UNSPECIFIED", "Unspecified. Defaults to PRINTING_ALLOWED." },
+                { "PRINTING_DISALLOWED", "Printing is disallowed." },
+                { "PRINTING_ALLOWED", "Printing is allowed." },
+            } },
             { "privateKeySelectionEnabled", new SchemaBoolean("Private Key Selection Enabled", "Allows showing UI on a device for a user to choose a private key alias if there are no matching rules in ChoosePrivateKeyRules. For devices below Android P, setting this may leave enterprise keys vulnerable.") },
             { "recommendedGlobalProxy", new SchemaObject("Recommended Global Proxy", "The network-independent global HTTP proxy. Typically proxies should be configured per-network in openNetworkConfiguration. However for unusual configurations like general internal filtering a global HTTP proxy may be useful. If the proxy is not accessible, network access may break. The global proxy is only a recommendation and some apps may ignore it.") {
                 { "pacUri", new SchemaString("PAC URI", "The URI of the PAC script used to configure the proxy.") },
@@ -481,7 +525,31 @@ namespace Aufbauwerk.Tools.Emm
                 { "endMinutes", new SchemaInteger("End Minutes", "If the type is WINDOWED, the end of the maintenance window, measured as the number of minutes after midnight in device's local time. This value must be between 0 and 1439, inclusive. If this value is less than startMinutes, then the maintenance window spans midnight. If the maintenance window specified is smaller than 30 minutes, the actual window is extended to 30 minutes beyond the start time."){ Maximum=1439 } },
             } },
             { "uninstallAppsDisabled", new SchemaBoolean("Uninstall Apps Disabled", "Whether user uninstallation of applications is disabled.") },
+            { "usageLog", new SchemaObject("Usage Log", "Configuration of device activity logging.") {
+                { "enabledLogTypes", new SchemaFlags("Enabled Log Types", "Specifies which log types are enabled. Note that users will receive on-device messaging when usage logging is enabled.") {
+                    { "LOG_TYPE_UNSPECIFIED", "This value is not used." },
+                    { "SECURITY_LOGS", "Enable logging of on-device security events, like when the device password is incorrectly entered or removable storage is mounted. See UsageLogEvent for a complete description of the logged security events. Supported for fully managed devices on Android 7 and above. Supported for company-owned devices with a work profile on Android 12 and above, on which only security events from the work profile are logged. Can be overridden by the application delegated scope SECURITY_LOGS" },
+                    { "NETWORK_ACTIVITY_LOGS", "Enable logging of on-device network events, like DNS lookups and TCP connections. See UsageLogEvent for a complete description of the logged network events. Supported for fully managed devices on Android 8 and above. Supported for company-owned devices with a work profile on Android 12 and above, on which only network events from the work profile are logged. Can be overridden by the application delegated scope NETWORK_ACTIVITY_LOGS" },
+                } },
+                { "uploadOnCellularAllowed", new SchemaFlags("Upload On Cellular Allowed", "Specifies which of the enabled log types can be uploaded over mobile data. By default logs are queued for upload when the device connects to WiFi.") {
+                    { "LOG_TYPE_UNSPECIFIED", "This value is not used." },
+                    { "SECURITY_LOGS", "Enable logging of on-device security events, like when the device password is incorrectly entered or removable storage is mounted. See UsageLogEvent for a complete description of the logged security events. Supported for fully managed devices on Android 7 and above. Supported for company-owned devices with a work profile on Android 12 and above, on which only security events from the work profile are logged. Can be overridden by the application delegated scope SECURITY_LOGS" },
+                    { "NETWORK_ACTIVITY_LOGS", "Enable logging of on-device network events, like DNS lookups and TCP connections. See UsageLogEvent for a complete description of the logged network events. Supported for fully managed devices on Android 8 and above. Supported for company-owned devices with a work profile on Android 12 and above, on which only network events from the work profile are logged. Can be overridden by the application delegated scope NETWORK_ACTIVITY_LOGS" },
+                } },
+            } },
             { "vpnConfigDisabled", new SchemaBoolean("VPN Config Disabled", "Whether configuring VPN is disabled.") },
+            { "wipeDataFlags", new SchemaFlags("Wipe Data Flags", "Wipe flags to indicate what data is wiped when a device or profile wipe is triggered due to any reason (for example, non-compliance). This does not apply to the enterprises.devices.delete method. This list must not have duplicates.") {
+                { "WIPE_DATA_FLAG_UNSPECIFIED", "This value must not be used." },
+                { "WIPE_ESIMS", "For company-owned devices, setting this in wipeDataFlags will remove all eSIMs on the device when wipe is triggered due to any reason. On personally-owned devices, this will remove only managed eSIMs on the device. (eSIMs which are added via the ADD_ESIM command). This is supported on devices running Android 15 and above." },
+            } },
+            { "workAccountSetupConfig", new SchemaObject("Work Account Setup Config", "Controls the work account setup configuration, such as details of whether a Google authenticated account is required.") {
+                { "authenticationType", new SchemaEnum("Authentication Type", "The authentication type of the user on the device.") {
+                    { "AUTHENTICATION_TYPE_UNSPECIFIED", "Unspecified. Defaults to AUTHENTICATION_TYPE_NOT_ENFORCED." },
+                    { "AUTHENTICATION_TYPE_NOT_ENFORCED", "Authentication status of user on device is not enforced." },
+                    { "GOOGLE_AUTHENTICATED", "Requires device to be managed with a Google authenticated account." },
+                } },
+                { "requiredAccountEmail", new SchemaString("Required Account Email", "The specific google work account email address to be added. This field is only relevant if authenticationType is GOOGLE_AUTHENTICATED. This must be an enterprise account and not a consumer account. Once set and a Google authenticated account is added to the device, changing this field will have no effect, and thus recommended to be set only once.") },
+            } },
         };
     }
 }
