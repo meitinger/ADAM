@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     public bool AllowPolicySelection { get; set; }
 
-    public System.DirectoryServices.AccountManagement.UserPrincipal? User { get; set; }
+    public UserPrincipal? User { get; set; }
 
     private void Enroll(object sender, EventArgs e)
     {
